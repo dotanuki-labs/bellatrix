@@ -1,5 +1,5 @@
-// Copyright 2025 Dotanuki Labs
-// SPDX-License-Identifier: MIT
+// Copyright 2026 Dotanuki Labs
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::utils::{
     BuildEnvironment::CI, BuildEnvironment::Local, docker_execution_arguments, evaluate_build_environment,
