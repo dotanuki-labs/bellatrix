@@ -1,5 +1,5 @@
-# Copyright 2025 Dotanuki Labs
-# SPDX-License-Identifier: MIT
+# Copyright 2026 Dotanuki Labs
+# SPDX-License-Identifier: AGPL-3.0-or-later
 
 inlineHeader = """
 Copyright {{props["inceptionYear"]}} {{props["copyrightOwner"]}}
@@ -15,6 +15,6 @@ includes = [
 ]
 
 [properties]
-inceptionYear = 2025
+inceptionYear = 2026
 copyrightOwner = "Dotanuki Labs"
-licenseSPDX = "MIT"
+licenseSPDX = "AGPL-3.0-or-later"
