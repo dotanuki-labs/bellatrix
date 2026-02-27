@@ -1,0 +1,36 @@
+# Copyright 2025 Dotanuki Labs
+# SPDX-License-Identifier: MIT
+
+name: ci-compliance
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+
+jobs:
+  checks:
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Project checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 20
+          persist-credentials: false
+
+      - name: Check typos on source files
+        uses: crate-ci/typos@57b11c6b7e54c402ccd9cda953f1072ec4f78e33 # v1.43.5
+
+      - name: Check commit conventions
+        if: ${{ github.ref != 'refs/heads/main' }}
+        uses: crate-ci/committed@dc6f20ddd899fe6d6f0402807884c0a4b3176b53 # v1.1.10
+
+      - name: Check MIT license on source files
+        run: docker run --rm -v $(pwd):/github/workspace ghcr.io/korandoru/hawkeye:v6.3.0 check
+
+      - name: Check issues with GHA Workflows
+        uses: zizmorcore/zizmor-action@0dce2577a4760a2749d8cfb7a84b7d5585ebcb7d # v0.5.0
+        with:
+          advanced-security: false

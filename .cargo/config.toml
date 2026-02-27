@@ -1,0 +1,19 @@
+# Copyright 2025 Dotanuki Labs
+# SPDX-License-Identifier: MIT
+
+[target.x86_64-unknown-linux-musl]
+linker = "rust-lld"
+rustflags = ["-Ctarget-feature=+crt-static"]
+
+[target.aarch64-unknown-linux-musl]
+linker = "rust-lld"
+rustflags = ["-Ctarget-feature=+crt-static"]
+
+[alias]
+xtasks = "run --manifest-path ./crates/xtasks/Cargo.toml --"
+
+# Utility for tests
+[registries.local]
+index = "sparse+http://localhost:8000/api/v1/crates/"
+credential-provider = ["cargo:token"]
+token = "Zy9HhJ02RJmg0GCrgLfaCVfU6IwDfhXD"

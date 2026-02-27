@@ -1,0 +1,60 @@
+# Copyright 2025 Dotanuki Labs
+# SPDX-License-Identifier: MIT
+
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93.1"
+authors = ["dotanuki.labs@gmail.com"]
+description = "An opinionated way to kick-off CLI apps powered by Rust"
+repository = "https://github.com/dotanuki-labs/bellatrix"
+homepage = "https://github.com/dotanuki-labs/bellatrix"
+documentation = "https://github.com/dotanuki-labs/bellatrix"
+readme = "README.md"
+license = "MIT"
+categories = ["command-line-utilities"]
+
+[workspace.dependencies]
+anyhow = "=1.0.102"
+assert_cmd = "=2.1.2"
+better-panic = "=0.3.0"
+clap = "=4.5.60"
+console = "=0.16.2"
+hex = "=0.4.3"
+human-panic = "=2.0.6"
+predicates = "=3.1.4"
+sha2 = "=0.10.9"
+tikv-jemallocator = "=0.6.1"
+xshell = "=0.2.7"
+walkdir = "=2.5.0"
+
+[workspace.lints.rust]
+future_incompatible = { level = "deny", priority = -1 }
+nonstandard_style = "deny"
+rust_2018_idioms = "deny"
+unsafe_code = "deny"
+unnameable_types = "deny"
+unused_lifetimes = "deny"
+unused_macro_rules = "deny"
+unused_qualifications = { level = "deny", priority = -1 }
+
+[workspace.lints.clippy]
+fallible_impl_from = "deny"
+fn_params_excessive_bools = "deny"
+indexing_slicing = "deny"
+todo = "deny"
+unimplemented = "deny"
+unneeded_field_pattern = "deny"
+unnested_or_patterns = "deny"
+unwrap_used = "deny"
+wildcard_enum_match_arm = "deny"
+zero_sized_map_values = "deny"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1

@@ -1,0 +1,6 @@
+# Copyright 2025 Dotanuki Labs
+# SPDX-License-Identifier: MIT
+
+[toolchain]
+channel = "1.93.1"
+components = ["clippy", "rustfmt"]

@@ -1,0 +1,13 @@
+# Rust builds
+/target
+artifacts
+bellatrix.cdx.json
+xtasks.cdx.json
+
+# IDE environment
+.fleet
+.DS_STORE
+.idea
+
+# Misc
+.rumdl-cache/
