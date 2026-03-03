@@ -3,7 +3,7 @@
 
 [package]
 name = "bellatrix"
-description = "An opinionated way to kick-off CLI apps powered by Rust"
+description = "An utility that keeps your Github forks always in sync with upstreams"
 authors.workspace = true
 edition.workspace = true
 documentation.workspace = true
@@ -20,7 +20,6 @@ better-panic.workspace = true
 clap = { workspace = true, features = ["derive"] }
 human-panic.workspace = true
 tikv-jemallocator.workspace = true
-console.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true

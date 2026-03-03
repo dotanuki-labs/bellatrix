@@ -1,27 +1,41 @@
 // Copyright 2026 Dotanuki Labs
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-mod core;
-
-use clap::Parser;
-use console::style;
+use clap::{Parser, Subcommand};
 use tikv_jemallocator::Jemalloc;
 
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct ProgramArguments {
-    #[arg(short, long)]
-    name: String,
+#[derive(Parser)]
+#[command(about, long_about = None)]
+struct Commands {
+    #[command(subcommand)]
+    pub cmd: Cmd,
 }
 
-fn main() {
+#[derive(Subcommand)]
+enum Cmd {
+    /// Checks available updates for existing forks
+    Check,
+    /// Syncs forks with upstream
+    Sync,
+}
+
+fn main() -> anyhow::Result<()> {
     better_panic::install();
     human_panic::setup_panic!();
 
-    let arguments = ProgramArguments::parse();
-    let greet = core::greet(&arguments.name).expect("Expecting a greet!");
-    println!("{}", style(greet).green());
+    let cmd = Commands::parse().cmd;
+
+    match cmd {
+        Cmd::Check => {
+            println!("checking available updates for forks");
+        },
+        Cmd::Sync => {
+            println!("Updating available forks")
+        },
+    }
+
+    Ok(())
 }

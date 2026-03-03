@@ -9,13 +9,6 @@ fn sut() -> Command {
 }
 
 #[test]
-fn should_parse_arguments() {
-    let execution = sut().args(["--name", "John"]).assert();
-
-    execution.stdout(contains("Hello, John"));
-}
-
-#[test]
 fn should_show_help() {
     let description = "Usage: bellatrix";
 
@@ -24,9 +17,9 @@ fn should_show_help() {
 }
 
 #[test]
-fn should_fail_without_arguments() {
-    let instruction = "required arguments were not provided";
+fn should_check_available_updates() {
+    let feedback = "checking available updates for forks";
 
-    let execution = sut().assert();
-    execution.failure().stderr(contains(instruction));
+    let execution = sut().arg("check").assert();
+    execution.success().stdout(contains(feedback));
 }
