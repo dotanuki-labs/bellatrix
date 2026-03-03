@@ -22,7 +22,7 @@ enum Cmd {
     Sync,
 }
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     better_panic::install();
     human_panic::setup_panic!();
 
@@ -36,4 +36,6 @@ fn main() {
             println!("Updating available forks")
         },
     }
+
+    Ok(())
 }

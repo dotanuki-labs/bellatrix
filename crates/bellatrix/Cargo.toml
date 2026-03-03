@@ -20,7 +20,6 @@ better-panic.workspace = true
 clap = { workspace = true, features = ["derive"] }
 human-panic.workspace = true
 tikv-jemallocator.workspace = true
-console.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true
