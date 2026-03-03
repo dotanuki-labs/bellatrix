@@ -1,0 +1,19 @@
+# Copyright 2026 Dotanuki Labs
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[package]
+name = "bellatrix-core"
+description = "Core functionality to sync Github forks with upstreams"
+authors.workspace = true
+edition.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[lints]
+workspace = true
+
