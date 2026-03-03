@@ -1,0 +1,4 @@
+// Copyright 2026 Dotanuki Labs
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+pub static TRUTH: u64 = 42;
