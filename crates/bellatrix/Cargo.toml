@@ -16,13 +16,16 @@ version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+bellatrix-core.workspace = true
 better-panic.workspace = true
 clap = { workspace = true, features = ["derive"] }
 human-panic.workspace = true
 tikv-jemallocator.workspace = true
+tokio = { workspace = true, features = ["full"] }
 
 [dev-dependencies]
 assert_cmd.workspace = true
+httpmock = { workspace = true, features = ["record"]}
 predicates.workspace = true
 
 [lints]
