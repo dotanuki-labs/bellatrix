@@ -142,4 +142,4 @@ jobs:
         uses: ./.github/actions/setup-rust
 
       - name: Publish on local registry
-        run: cargo publish -p bellatrix --registry local # zizmor: ignore[use-trusted-publishing]
+        run: cargo publish --workspace --registry local # zizmor: ignore[use-trusted-publishing]

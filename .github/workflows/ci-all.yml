@@ -18,12 +18,6 @@ jobs:
     permissions:
       contents: read
 
-  docker:
-    needs: compliance
-    uses: ./.github/workflows/ci-docker.yml
-    permissions:
-      contents: read
-
   rust:
     needs: compliance
     uses: ./.github/workflows/ci-rust.yml
@@ -33,7 +27,7 @@ jobs:
   all-checks:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    needs: [compliance, rust, docker]
+    needs: [compliance, rust]
     steps:
       - name: Report success
         run: echo "Great job ✅"
