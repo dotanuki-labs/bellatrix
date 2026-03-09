@@ -44,29 +44,32 @@ async fn main() -> anyhow::Result<()> {
             }
 
             for comparison in analysis {
-                if comparison.commits_behind > 0 {
-                    println!(
-                        "{}:{} is {} commits behind {}:{}",
-                        comparison.repo.forked,
-                        comparison.repo.default_branch,
-                        comparison.commits_behind,
-                        comparison.repo.upstream,
-                        comparison.repo.default_branch
-                    );
-                } else {
-                    println!(
-                        "{} is up to date with {}",
-                        comparison.repo.forked, comparison.repo.upstream
-                    )
-                }
+                println!(
+                    "{}:{} is {} commits behind {}:{}",
+                    comparison.repo.base,
+                    comparison.repo.default_branch,
+                    comparison.commits_behind,
+                    comparison.repo.upstream,
+                    comparison.repo.default_branch
+                );
             }
         },
         Cmd::Sync => {
+            println!();
             println!("Updating available forks");
-            bellatrix.sync_all().await?
+            println!();
+            let synced = bellatrix.sync_all().await?;
+
+            for fork in synced {
+                println!(
+                    "synchronized {} ({} {} commits)",
+                    fork.synchronized, fork.merge_type, fork.commits
+                )
+            }
         },
     }
 
+    println!();
     Ok(())
 }
 
