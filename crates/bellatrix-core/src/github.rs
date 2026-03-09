@@ -1,6 +1,8 @@
 // Copyright 2026 Dotanuki Labs
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use anyhow::{Context, anyhow};
+use async_trait::async_trait;
 use header::{HeaderMap, HeaderValue};
 use reqwest::header;
 use reqwest_middleware::ClientWithMiddleware;
@@ -9,17 +11,76 @@ use reqwest_retry::policies::ExponentialBackoff;
 use serde::Deserialize;
 use std::time::Duration;
 
+pub struct GithubClientConfig {
+    github_api_url: String,
+    github_token: String,
+}
+
+impl GithubClientConfig {
+    pub fn new(github_api_url: String, github_token: String) -> Self {
+        Self {
+            github_api_url,
+            github_token,
+        }
+    }
+}
+
 pub struct GithubClient {
-    base_url: String,
+    github_api_url: String,
     http_client: ClientWithMiddleware,
 }
 
-#[derive(Debug, Deserialize)]
+impl TryFrom<GithubClientConfig> for GithubClient {
+    type Error = anyhow::Error;
+
+    fn try_from(config: GithubClientConfig) -> anyhow::Result<Self> {
+        let github_api_url = config.github_api_url.trim().to_string();
+
+        if github_api_url.is_empty() {
+            anyhow::bail!("github API URL is empty");
+        }
+
+        let github_token = config.github_token.trim();
+
+        if github_token.is_empty() {
+            anyhow::bail!("github API token is empty");
+        }
+
+        let user_agent = format!("{}/{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+        let bearer_token = format!("Bearer {}", github_token);
+
+        let user_agent = HeaderValue::from_str(&user_agent)?;
+        let user_auth = HeaderValue::from_str(&bearer_token)?;
+
+        let mut headers = HeaderMap::new();
+        headers.insert(header::USER_AGENT, user_agent);
+        headers.insert(header::AUTHORIZATION, user_auth);
+
+        let base_http_client = reqwest::Client::builder()
+            .default_headers(headers)
+            .timeout(Duration::from_secs(15))
+            .build()?;
+
+        let retry_policy = ExponentialBackoff::builder().build_with_max_retries(2);
+
+        let http_client = reqwest_middleware::ClientBuilder::new(base_http_client)
+            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+            .build();
+        let client = Self {
+            github_api_url,
+            http_client,
+        };
+
+        Ok(client)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
 pub struct RepositoryOwner {
     pub login: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
 pub struct UpstreamRepository {
     pub full_name: String,
     pub name: String,
@@ -27,7 +88,7 @@ pub struct UpstreamRepository {
     pub default_branch: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
 pub struct GithubRepository {
     pub full_name: String,
     pub default_branch: String,
@@ -37,57 +98,46 @@ pub struct GithubRepository {
     pub parent: Option<UpstreamRepository>,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct ForkComparison {
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
+pub struct CommitsComparison {
     pub ahead_by: u32,
-    pub behind_by: u32,
 }
 
-impl GithubClient {
-    pub async fn list_recently_updated_repos(&self) -> anyhow::Result<Vec<GithubRepository>> {
-        let endpoint = format!(
-            "{}/user/repos?per_page=100&sort=updated&visibility=public&affiliation=owner",
-            self.base_url
-        );
+#[async_trait]
+pub trait GithubApi {
+    async fn list_recently_updated_repos(&self) -> anyhow::Result<Vec<GithubRepository>>;
 
-        dbg!(&endpoint);
+    async fn upstream_repo(&self, repo: &GithubRepository) -> anyhow::Result<UpstreamRepository>;
 
-        let repos = self
-            .http_client
-            .get(&endpoint)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<_>()
-            .await?;
-
-        Ok(repos)
-    }
-
-    pub async fn upstream_repo(&self, repo: &GithubRepository) -> anyhow::Result<UpstreamRepository> {
-        let endpoint = format!("{}/repos/{}", self.base_url, repo.full_name);
-
-        dbg!(&endpoint);
-        let upstream = self
-            .http_client
-            .get(&endpoint)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<GithubRepository>()
-            .await?;
-
-        Ok(upstream.parent.expect("fork should have a parent repository"))
-    }
-
-    pub async fn compare_with_upstream(
+    async fn compare_with_upstream(
         &self,
         fork: &GithubRepository,
         upstream: &UpstreamRepository,
-    ) -> anyhow::Result<ForkComparison> {
+    ) -> anyhow::Result<CommitsComparison>;
+}
+
+#[async_trait]
+impl GithubApi for GithubClient {
+    async fn list_recently_updated_repos(&self) -> anyhow::Result<Vec<GithubRepository>> {
+        let api = format!("{}/user/repos", self.github_api_url);
+        let endpoint = format!("{}?per_page=100&sort=updated&visibility=public&affiliation=owner", &api);
+        self.guarded_http_get(&endpoint).await
+    }
+
+    async fn upstream_repo(&self, repo: &GithubRepository) -> anyhow::Result<UpstreamRepository> {
+        let endpoint = format!("{}/repos/{}", self.github_api_url, repo.full_name);
+        let upstream = self.guarded_http_get::<GithubRepository>(&endpoint).await?;
+        upstream.parent.ok_or(anyhow!("fork should have a parent repository"))
+    }
+
+    async fn compare_with_upstream(
+        &self,
+        fork: &GithubRepository,
+        upstream: &UpstreamRepository,
+    ) -> anyhow::Result<CommitsComparison> {
         let endpoint = format!(
             "{}/repos/{}/compare/{}:{}:{}...{}:{}:{}",
-            self.base_url,
+            self.github_api_url,
             fork.full_name,
             fork.owner.login,
             fork.name,
@@ -97,46 +147,34 @@ impl GithubClient {
             upstream.default_branch
         );
 
-        dbg!(&endpoint);
+        self.guarded_http_get(&endpoint).await
+    }
+}
 
-        let comparison = self
+impl GithubClient {
+    async fn guarded_http_get<T>(&self, endpoint: &str) -> anyhow::Result<T>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        let error_message = format!("failure : GET {} (<reason>)", endpoint);
+
+        let http_response = self
             .http_client
-            .get(&endpoint)
+            .get(endpoint)
             .send()
-            .await?
-            .error_for_status()?
-            .json::<ForkComparison>()
-            .await?;
+            .await
+            .with_context(|| error_message.replace("<reason>", "networking error"))?;
 
-        Ok(comparison)
-    }
+        let status = http_response.status();
+        let ok_response = http_response
+            .error_for_status()
+            .with_context(|| error_message.replace("<reason>", format!("http status = {} ", status).as_str()))?;
 
-    pub async fn sync_fork(&self, _: &GithubRepository, _: &UpstreamRepository) -> anyhow::Result<()> {
-        Ok(())
-    }
+        let deserialized = ok_response
+            .json::<T>()
+            .await
+            .with_context(|| error_message.replace("<reason>", "deserialization error"))?;
 
-    pub fn new(base_url: String, auth_token: String) -> Self {
-        let user_agent = format!("{}/{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
-        let bearer_token = format!("Bearer {}", auth_token);
-
-        let user_agent = HeaderValue::from_str(&user_agent).expect("invalid header value");
-        let user_auth = HeaderValue::from_str(&bearer_token).expect("invalid header value");
-
-        let mut headers = HeaderMap::new();
-        headers.insert(header::USER_AGENT, user_agent);
-        headers.insert(header::AUTHORIZATION, user_auth);
-
-        let base_http_client = reqwest::Client::builder()
-            .default_headers(headers)
-            .timeout(Duration::from_secs(15))
-            .build()
-            .expect("cannot build HTTP client");
-
-        let retry_policy = ExponentialBackoff::builder().build_with_max_retries(0);
-
-        let http_client = reqwest_middleware::ClientBuilder::new(base_http_client)
-            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
-            .build();
-        Self { base_url, http_client }
+        Ok(deserialized)
     }
 }

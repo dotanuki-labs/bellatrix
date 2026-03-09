@@ -19,6 +19,7 @@ anyhow.workspace = true
 bellatrix-core.workspace = true
 better-panic.workspace = true
 clap = { workspace = true, features = ["derive"] }
+env_logger.workspace = true
 human-panic.workspace = true
 tikv-jemallocator.workspace = true
 tokio = { workspace = true, features = ["full"] }
