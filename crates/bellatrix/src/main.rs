@@ -1,8 +1,9 @@
 // Copyright 2026 Dotanuki Labs
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use bellatrix_core::Bellatrix;
+use bellatrix_core::{Bellatrix, GithubClientConfig};
 use clap::{Parser, Subcommand};
+use std::env;
 use tikv_jemallocator::Jemalloc;
 
 #[global_allocator]
@@ -27,9 +28,10 @@ enum Cmd {
 async fn main() -> anyhow::Result<()> {
     better_panic::install();
     human_panic::setup_panic!();
+    env_logger::init();
 
     let cmd = Commands::parse().cmd;
-    let bellatrix = create_bellatrix();
+    let bellatrix = create_bellatrix()?;
     match cmd {
         Cmd::Check => {
             println!();
@@ -42,14 +44,21 @@ async fn main() -> anyhow::Result<()> {
             }
 
             for comparison in analysis {
-                println!(
-                    "{}:{} is {} commits behind {}:{}",
-                    comparison.repo.forked,
-                    comparison.repo.default_branch,
-                    comparison.commits_behind,
-                    comparison.repo.upstream,
-                    comparison.repo.default_branch
-                );
+                if comparison.commits_behind > 0 {
+                    println!(
+                        "{}:{} is {} commits behind {}:{}",
+                        comparison.repo.forked,
+                        comparison.repo.default_branch,
+                        comparison.commits_behind,
+                        comparison.repo.upstream,
+                        comparison.repo.default_branch
+                    );
+                } else {
+                    println!(
+                        "{} is up to date with {}",
+                        comparison.repo.forked, comparison.repo.upstream
+                    )
+                }
             }
         },
         Cmd::Sync => {
@@ -61,9 +70,11 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn create_bellatrix() -> Bellatrix {
-    let github_api = std::env::var("GITHUB_API_URL").unwrap_or("https://api.github.com".to_string());
-    let github_pat = std::env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN env variable is required");
-    let github_client = bellatrix_core::github::GithubClient::new(github_api, github_pat);
-    Bellatrix::new(github_client)
+fn create_bellatrix() -> anyhow::Result<Bellatrix> {
+    let github_api_url = env::var("GITHUB_API_URL").unwrap_or("https://api.github.com".to_string());
+    let github_token = env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN env variable is required");
+    let github_client_config = GithubClientConfig::new(github_api_url, github_token);
+    let github_client = bellatrix_core::github::GithubClient::try_from(github_client_config)?;
+    let bellatrix = Bellatrix::new(github_client);
+    Ok(bellatrix)
 }
