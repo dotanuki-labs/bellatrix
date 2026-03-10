@@ -3,6 +3,7 @@
 
 use bellatrix_core::{Bellatrix, GithubClientConfig};
 use clap::{Parser, Subcommand};
+use console::style;
 use std::env;
 use tikv_jemallocator::Jemalloc;
 
@@ -35,35 +36,48 @@ async fn main() -> anyhow::Result<()> {
     match cmd {
         Cmd::Check => {
             println!();
-            println!("checking available updates for forks");
+            println!("‣ checking available updates for forks ...");
             println!();
-            let analysis = bellatrix.find_forks_behind_upstream().await?;
+            let behind_upstream = bellatrix.find_forks_behind_upstream().await?;
 
-            if analysis.is_empty() {
+            if behind_upstream.is_empty() {
+                println!(
+                    "{}",
+                    style("✓ all forks are in sync with corresponding upstreams").cyan()
+                );
+                println!();
                 return Ok(());
             }
 
-            for comparison in analysis {
+            for comparison in behind_upstream {
                 println!(
-                    "{}:{} is {} commits behind {}:{}",
-                    comparison.repo.base,
-                    comparison.repo.default_branch,
+                    "• {}:{} is {} commits behind {}:{}",
+                    style(&comparison.repo.base).cyan(),
+                    style(&comparison.repo.default_branch).cyan(),
                     comparison.commits_behind,
-                    comparison.repo.upstream,
-                    comparison.repo.default_branch
+                    style(&comparison.repo.upstream).green(),
+                    style(&comparison.repo.default_branch).green(),
                 );
             }
         },
         Cmd::Sync => {
             println!();
-            println!("Updating available forks");
+            println!("‣ updating available forks");
             println!();
             let synced = bellatrix.sync_all().await?;
 
+            if synced.is_empty() {
+                println!("{}", style("✓ no sync required").cyan());
+                println!();
+                return Ok(());
+            }
+
             for fork in synced {
                 println!(
-                    "synchronized {} ({} {} commits)",
-                    fork.synchronized, fork.merge_type, fork.commits
+                    "✓  synchronized {} ({} {} commits)",
+                    style(&fork.synchronized).cyan(),
+                    fork.merge_type,
+                    fork.commits
                 )
             }
         },

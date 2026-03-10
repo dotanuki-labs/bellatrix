@@ -212,6 +212,7 @@ dependencies = [
  "bellatrix-core",
  "better-panic",
  "clap",
+ "console 0.16.2",
  "env_logger",
  "httpmock",
  "human-panic",
@@ -244,7 +245,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fa9e1d11a268684cbd90ed36370d7577afb6c62d912ddff5c15fc34343e5036"
 dependencies = [
  "backtrace",
- "console",
+ "console 0.15.11",
 ]
 
 [[package]]
@@ -402,6 +403,19 @@ dependencies = [
  "libc",
  "once_cell",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "console"
+version = "0.16.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "03e45a4a8926227e4197636ba97a9fc9b00477e9f4bd711395687c5f0734bec4"
+dependencies = [
+ "encode_unicode",
+ "libc",
+ "once_cell",
+ "unicode-width",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
