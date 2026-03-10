@@ -132,10 +132,7 @@ impl Bellatrix {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        BehindUpstream, Bellatrix, CommitsComparison, ForkedRepository, GithubApi, GithubRepository, RepositoryOwner,
-        SyncOutcome, UpstreamMerging, UpstreamRepository,
-    };
+    use crate::*;
     use anyhow::Context;
     use assertor::{EqualityAssertion, VecAssertion};
     use async_trait::async_trait;
@@ -310,8 +307,12 @@ mod tests {
     #[tokio::test]
     async fn sync_fork_with_upstreams() {
         let mut github_network = HashMap::new();
-        github_network.insert(fork("shells"), Some((upstream("shells"), ahead_by(4))));
         github_network.insert(owned("ecdysis"), None);
+        github_network.insert(fork("shells"), Some((upstream("shells"), ahead_by(4))));
+        github_network.insert(fork("claws"), Some((upstream("claws"), ahead_by(0))));
+
+        // ferris will resolve to http 409
+        github_network.insert(fork("ferris"), Some((upstream("ferris"), ahead_by(2))));
 
         let github_client = FakeGithubClient { github_network };
         let bellatrix = Bellatrix::new(github_client);
