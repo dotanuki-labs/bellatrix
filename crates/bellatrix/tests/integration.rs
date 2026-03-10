@@ -4,6 +4,7 @@
 use assert_cmd::Command;
 use httpmock::MockServer;
 use predicates::str::contains;
+use std::path::PathBuf;
 
 fn sut() -> Command {
     assert_cmd::cargo::cargo_bin_cmd!("bellatrix")
@@ -20,19 +21,13 @@ fn should_show_help() {
 #[test]
 #[allow(unsafe_code)]
 fn should_check_updates_for_existing_forks() {
-    let current_dir = std::env::current_dir().expect("could not get current directory");
-    let recordings = current_dir.join("tests").join("playbacks").join("check-forks.yaml");
-
-    assert!(recordings.exists());
-
     let server = MockServer::start();
+    let recordings = setup_playback("check-forks.yaml");
     server.playback(recordings);
 
     unsafe {
         std::env::set_var("GITHUB_API_URL", server.base_url());
-        if std::env::var("GITHUB_TOKEN").is_err() {
-            std::env::set_var("GITHUB_TOKEN", "fake-api-token")
-        }
+        std::env::set_var("GITHUB_TOKEN", "fake-api-token")
     }
 
     let execution = sut().arg("check").assert();
@@ -44,23 +39,24 @@ fn should_check_updates_for_existing_forks() {
 #[test]
 #[allow(unsafe_code)]
 fn should_sync_fork_behind_upstream() {
-    let current_dir = std::env::current_dir().expect("could not get current directory");
-    let recordings = current_dir.join("tests").join("playbacks").join("sync-fork.yaml");
-
-    assert!(recordings.exists());
-
     let server = MockServer::start();
+    let recordings = setup_playback("sync-forks.yaml");
     server.playback(recordings);
 
     unsafe {
         std::env::set_var("GITHUB_API_URL", server.base_url());
-        if std::env::var("GITHUB_TOKEN").is_err() {
-            std::env::set_var("GITHUB_TOKEN", "fake-api-token")
-        }
+        std::env::set_var("GITHUB_TOKEN", "fake-api-token")
     }
 
     let execution = sut().arg("sync").assert();
 
     let feedback = "synchronized ubiratansoares/advisory-db (fast-forward 17 commits)";
     execution.success().stdout(contains(feedback));
+}
+
+fn setup_playback(playback: &str) -> PathBuf {
+    let current_dir = std::env::current_dir().expect("could not get current directory");
+    let recordings = current_dir.join("tests").join("playbacks").join(playback);
+    assert!(recordings.exists());
+    recordings
 }
