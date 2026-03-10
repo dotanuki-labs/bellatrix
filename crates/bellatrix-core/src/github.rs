@@ -1,6 +1,7 @@
 // Copyright 2026 Dotanuki Labs
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::ForkedRepository;
 use anyhow::{Context, anyhow};
 use async_trait::async_trait;
 use header::{HeaderMap, HeaderValue};
@@ -9,6 +10,7 @@ use reqwest_middleware::ClientWithMiddleware;
 use reqwest_retry::RetryTransientMiddleware;
 use reqwest_retry::policies::ExponentialBackoff;
 use serde::Deserialize;
+use serde_json::json;
 use std::time::Duration;
 
 pub struct GithubClientConfig {
@@ -61,7 +63,7 @@ impl TryFrom<GithubClientConfig> for GithubClient {
             .timeout(Duration::from_secs(15))
             .build()?;
 
-        let retry_policy = ExponentialBackoff::builder().build_with_max_retries(2);
+        let retry_policy = ExponentialBackoff::builder().build_with_max_retries(0);
 
         let http_client = reqwest_middleware::ClientBuilder::new(base_http_client)
             .with(RetryTransientMiddleware::new_with_policy(retry_policy))
@@ -103,6 +105,11 @@ pub struct CommitsComparison {
     pub ahead_by: u32,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct UpstreamMerging {
+    pub merge_type: String,
+}
+
 #[async_trait]
 pub trait GithubApi {
     async fn list_recently_updated_repos(&self) -> anyhow::Result<Vec<GithubRepository>>;
@@ -114,6 +121,8 @@ pub trait GithubApi {
         fork: &GithubRepository,
         upstream: &UpstreamRepository,
     ) -> anyhow::Result<CommitsComparison>;
+
+    async fn sync_fork(&self, repo: &ForkedRepository) -> anyhow::Result<UpstreamMerging>;
 }
 
 #[async_trait]
@@ -148,6 +157,32 @@ impl GithubApi for GithubClient {
         );
 
         self.guarded_http_get(&endpoint).await
+    }
+
+    async fn sync_fork(&self, repo: &ForkedRepository) -> anyhow::Result<UpstreamMerging> {
+        let endpoint = format!("{}/repos/{}/merge-upstream", self.github_api_url, repo.base);
+        let body = json!({ "branch": repo.default_branch });
+        let error_message = format!("failure : POST {} (<reason>)", endpoint);
+
+        let http_response = self
+            .http_client
+            .post(endpoint)
+            .json(&body)
+            .send()
+            .await
+            .with_context(|| error_message.replace("<reason>", "networking error"))?;
+
+        let status = http_response.status();
+        let ok_response = http_response
+            .error_for_status()
+            .with_context(|| error_message.replace("<reason>", format!("http status = {} ", status).as_str()))?;
+
+        let deserialized = ok_response
+            .json()
+            .await
+            .with_context(|| error_message.replace("<reason>", "deserialization error"))?;
+
+        Ok(deserialized)
     }
 }
 

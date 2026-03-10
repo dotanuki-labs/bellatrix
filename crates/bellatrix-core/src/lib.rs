@@ -10,7 +10,7 @@ use log::debug;
 
 #[derive(Debug, PartialEq)]
 pub struct ForkedRepository {
-    pub forked: String,
+    pub base: String,
     pub upstream: String,
     pub default_branch: String,
 }
@@ -19,6 +19,13 @@ pub struct ForkedRepository {
 pub struct BehindUpstream {
     pub repo: ForkedRepository,
     pub commits_behind: u32,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct SyncOutcome {
+    pub synchronized: String,
+    pub merge_type: String,
+    pub commits: u32,
 }
 
 pub struct Bellatrix {
@@ -80,19 +87,46 @@ impl Bellatrix {
             })
             .map(|(fork, upstream, comparison)| BehindUpstream {
                 repo: ForkedRepository {
-                    forked: fork.full_name,
+                    base: fork.full_name,
                     default_branch: fork.default_branch,
                     upstream: upstream.full_name,
                 },
                 commits_behind: comparison.ahead_by,
             })
+            .filter(|behind| behind.commits_behind > 0)
             .collect::<Vec<_>>();
 
         Ok(comparisons)
     }
 
-    pub async fn sync_all(&self) -> anyhow::Result<()> {
-        Ok(())
+    pub async fn sync_all(&self) -> anyhow::Result<Vec<SyncOutcome>> {
+        let forks_behind = self.find_forks_behind_upstream().await?;
+
+        let futures = forks_behind
+            .into_iter()
+            .map(async |behind| (self.github_client.sync_fork(&behind.repo).await, behind))
+            .collect::<Vec<_>>();
+
+        let outcomes = future::join_all(futures)
+            .await
+            .into_iter()
+            .filter_map(|(merging_result, behind_upstream)| match merging_result {
+                Ok(merging_result) => {
+                    let outcome = SyncOutcome {
+                        synchronized: behind_upstream.repo.base,
+                        merge_type: merging_result.merge_type,
+                        commits: behind_upstream.commits_behind,
+                    };
+                    Some(outcome)
+                },
+                Err(incoming) => {
+                    debug!("cannot synchronize fork with upstream: {:?}", incoming.root_cause());
+                    None
+                },
+            })
+            .collect::<Vec<_>>();
+
+        Ok(outcomes)
     }
 }
 
@@ -100,7 +134,7 @@ impl Bellatrix {
 mod tests {
     use crate::{
         BehindUpstream, Bellatrix, CommitsComparison, ForkedRepository, GithubApi, GithubRepository, RepositoryOwner,
-        UpstreamRepository,
+        SyncOutcome, UpstreamMerging, UpstreamRepository,
     };
     use anyhow::Context;
     use assertor::{EqualityAssertion, VecAssertion};
@@ -140,6 +174,16 @@ mod tests {
             let (_, comparison) = self.github_network[fork].clone().context("upstream repo not found")?;
 
             Ok(comparison)
+        }
+
+        async fn sync_fork(&self, behind_upstream: &ForkedRepository) -> anyhow::Result<UpstreamMerging> {
+            if &behind_upstream.upstream == "ferris" {
+                anyhow::bail!("http 409 : conflict")
+            };
+
+            Ok(UpstreamMerging {
+                merge_type: "fast-forward".to_string(),
+            })
         }
     }
 
@@ -187,7 +231,7 @@ mod tests {
     impl ForkedRepository {
         fn from(name: &str) -> ForkedRepository {
             ForkedRepository {
-                forked: format!("katagi/{}", name),
+                base: format!("katagi/{}", name),
                 upstream: format!("crabbyverse/{}", name),
                 default_branch: "main".to_string(),
             }
@@ -209,16 +253,10 @@ mod tests {
             .await
             .expect("expecting repos from network");
 
-        let expected = vec![
-            BehindUpstream {
-                repo: ForkedRepository::from("shells"),
-                commits_behind: 0,
-            },
-            BehindUpstream {
-                repo: ForkedRepository::from("claws"),
-                commits_behind: 3,
-            },
-        ];
+        let expected = vec![BehindUpstream {
+            repo: ForkedRepository::from("claws"),
+            commits_behind: 3,
+        }];
 
         assertor::assert_that!(behind_upstream).is_equal_to(expected);
     }
@@ -245,10 +283,10 @@ mod tests {
         let mut github_network = HashMap::new();
         github_network.insert(owned("callinectes"), None);
 
-        github_network.insert(fork("shells"), Some((upstream("shells"), ahead_by(0))));
+        github_network.insert(fork("shells"), Some((upstream("shells"), ahead_by(3))));
 
         // ferris will resolve to http 404
-        github_network.insert(fork("ferris"), Some((upstream("ferris"), ahead_by(3))));
+        github_network.insert(fork("ferris"), Some((upstream("ferris"), ahead_by(1))));
 
         // rustonomics will resolve to networking failure
         github_network.insert(fork("rustonomics"), Some((upstream("rustonomics"), ahead_by(42))));
@@ -263,7 +301,27 @@ mod tests {
 
         let expected = vec![BehindUpstream {
             repo: ForkedRepository::from("shells"),
-            commits_behind: 0,
+            commits_behind: 3,
+        }];
+
+        assertor::assert_that!(behind_upstream).is_equal_to(expected);
+    }
+
+    #[tokio::test]
+    async fn sync_fork_with_upstreams() {
+        let mut github_network = HashMap::new();
+        github_network.insert(fork("shells"), Some((upstream("shells"), ahead_by(4))));
+        github_network.insert(owned("ecdysis"), None);
+
+        let github_client = FakeGithubClient { github_network };
+        let bellatrix = Bellatrix::new(github_client);
+
+        let behind_upstream = bellatrix.sync_all().await.expect("expecting repos from network");
+
+        let expected = vec![SyncOutcome {
+            synchronized: "katagi/shells".to_string(),
+            merge_type: "fast-forward".to_string(),
+            commits: 4,
         }];
 
         assertor::assert_that!(behind_upstream).is_equal_to(expected);
