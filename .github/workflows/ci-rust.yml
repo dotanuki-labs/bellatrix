@@ -54,7 +54,7 @@ jobs:
       - name: Check issues with supply chain
         run: cargo xtasks security
 
-  build:
+  build-binaries:
     needs: [lint, tests]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
@@ -82,8 +82,8 @@ jobs:
           name: bellatrix-binaries-${{ runner.os }}-${{ runner.arch }}
           path: artifacts
 
-  extras:
-    needs: build
+  binaries-extras:
+    needs: build-binaries
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
@@ -117,8 +117,8 @@ jobs:
           name: sbom-${{ github.sha }}.json
           path: crates/bellatrix/bellatrix.cdx.json
 
-  publish:
-    needs: build
+  publish-binaries:
+    needs: build-binaries
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     services:
@@ -143,3 +143,20 @@ jobs:
 
       - name: Publish on local registry
         run: cargo publish --workspace --registry local # zizmor: ignore[use-trusted-publishing]
+
+  build-cloudflare-worker:
+    needs: [lint, tests]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Project checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Build Cloudflare worker
+        run: |
+          cargo install --locked worker-build@0.7.5
+          worker-build --release crates/bellatrix-worker
+

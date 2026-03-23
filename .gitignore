@@ -4,6 +4,11 @@ artifacts
 bellatrix.cdx.json
 xtasks.cdx.json
 
+# Wrangler
+crates/bellatrix-worker/build/
+.wrangler
+.env
+
 # IDE environment
 .fleet
 .DS_STORE

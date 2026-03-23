@@ -5,10 +5,7 @@ use crate::ForkedRepository;
 use anyhow::{Context, anyhow};
 use async_trait::async_trait;
 use header::{HeaderMap, HeaderValue};
-use reqwest::header;
-use reqwest_middleware::ClientWithMiddleware;
-use reqwest_retry::RetryTransientMiddleware;
-use reqwest_retry::policies::ExponentialBackoff;
+use reqwest::{Client, header};
 use serde::Deserialize;
 use serde_json::json;
 use std::time::Duration;
@@ -29,7 +26,7 @@ impl GithubClientConfig {
 
 pub struct GithubClient {
     github_api_url: String,
-    http_client: ClientWithMiddleware,
+    http_client: Client,
 }
 
 impl TryFrom<GithubClientConfig> for GithubClient {
@@ -58,16 +55,8 @@ impl TryFrom<GithubClientConfig> for GithubClient {
         headers.insert(header::USER_AGENT, user_agent);
         headers.insert(header::AUTHORIZATION, user_auth);
 
-        let base_http_client = reqwest::Client::builder()
-            .default_headers(headers)
-            .timeout(Duration::from_secs(15))
-            .build()?;
+        let http_client: Client = Client::builder().default_headers(headers).build()?;
 
-        let retry_policy = ExponentialBackoff::builder().build_with_max_retries(0);
-
-        let http_client = reqwest_middleware::ClientBuilder::new(base_http_client)
-            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
-            .build();
         let client = Self {
             github_api_url,
             http_client,
@@ -102,7 +91,7 @@ pub struct GithubRepository {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
 pub struct CommitsComparison {
-    pub ahead_by: u32,
+    pub ahead_by: u64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -110,7 +99,7 @@ pub struct UpstreamMerging {
     pub merge_type: String,
 }
 
-#[async_trait]
+#[async_trait(?Send)]
 pub trait GithubApi {
     async fn list_recently_updated_repos(&self) -> anyhow::Result<Vec<GithubRepository>>;
 
@@ -125,7 +114,7 @@ pub trait GithubApi {
     async fn sync_fork(&self, repo: &ForkedRepository) -> anyhow::Result<UpstreamMerging>;
 }
 
-#[async_trait]
+#[async_trait(?Send)]
 impl GithubApi for GithubClient {
     async fn list_recently_updated_repos(&self) -> anyhow::Result<Vec<GithubRepository>> {
         let api = format!("{}/user/repos", self.github_api_url);
@@ -196,6 +185,7 @@ impl GithubClient {
         let http_response = self
             .http_client
             .get(endpoint)
+            .timeout(Duration::from_secs(15))
             .send()
             .await
             .with_context(|| error_message.replace("<reason>", "networking error"))?;

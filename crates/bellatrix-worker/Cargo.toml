@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 [package]
-name = "bellatrix-core"
-description = "Core functionality to sync Github forks with upstreams"
+name = "bellatrix-worker"
+description = "A Cloudflare Worker that runs bellatrix"
 authors.workspace = true
 edition.workspace = true
 documentation.workspace = true
@@ -14,19 +14,24 @@ repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
 
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
-futures.workspace = true
-log.workspace = true
-reqwest = { workspace = true, features = ["json", "charset", "system-proxy", "http2"] }
-serde.workspace = true
-serde_json.workspace = true
+bellatrix-core.workspace = true
+http.workspace = true
+worker = { workspace = true, features = ['http'] }
+worker-macros = { workspace = true, features = ['http'] }
+
 
 [dev-dependencies]
-assertor.workspace = true
-tokio = { workspace = true, features = ["full"] }
-
 
 [lints]
 workspace = true
+
+[profile.release]
+lto = true
+strip = true
+codegen-units = 1

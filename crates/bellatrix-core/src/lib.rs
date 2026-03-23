@@ -18,14 +18,14 @@ pub struct ForkedRepository {
 #[derive(Debug, PartialEq)]
 pub struct BehindUpstream {
     pub repo: ForkedRepository,
-    pub commits_behind: u32,
+    pub commits_behind: u64,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct SyncOutcome {
     pub synchronized: String,
     pub merge_type: String,
-    pub commits: u32,
+    pub commits: u64,
 }
 
 pub struct Bellatrix {
@@ -142,7 +142,7 @@ mod tests {
         github_network: HashMap<GithubRepository, Option<(UpstreamRepository, CommitsComparison)>>,
     }
 
-    #[async_trait]
+    #[async_trait(?Send)]
     impl GithubApi for FakeGithubClient {
         async fn list_recently_updated_repos(&self) -> anyhow::Result<Vec<GithubRepository>> {
             Ok(self.github_network.keys().cloned().collect())
@@ -221,7 +221,7 @@ mod tests {
         }
     }
 
-    fn ahead_by(amount: u32) -> CommitsComparison {
+    fn ahead_by(amount: u64) -> CommitsComparison {
         CommitsComparison { ahead_by: amount }
     }
 
