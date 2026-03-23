@@ -158,5 +158,5 @@ jobs:
       - name: Build Cloudflare worker
         run: |
           cargo install --locked worker-build@0.7.5
-          worker-build --release crates/bellatrix-worker
+          RUST_LOG=debug worker-build --release crates/bellatrix-worker
 
