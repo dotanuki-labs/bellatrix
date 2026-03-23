@@ -147,7 +147,7 @@ jobs:
   build-cloudflare-worker:
     needs: build-binaries
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     steps:
       - name: Project checkout
@@ -157,6 +157,7 @@ jobs:
 
       - name: Build Cloudflare worker
         run: |
+          rustup target add wasm32-unknown-unknown
           cargo install --locked worker-build@0.7.5
           RUST_LOG=debug worker-build --release crates/bellatrix-worker
 

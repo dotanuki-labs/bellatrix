@@ -20,9 +20,7 @@ runs:
 
         - name: Setup Rust and Cargo plugins
           shell: bash
-          run: |
-            rustup show active-toolchain
-            rustup target add wasm32-unknown-unknown
+          run: rustup show active-toolchain
 
         - name: Install additional tools (Mac-only)
           if:  ${{ runner.os == 'macOS' && inputs.install-extra-tools != 'false' }}
