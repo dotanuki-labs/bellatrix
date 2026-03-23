@@ -3,7 +3,9 @@
 
 [advisories]
 ignore = [
-    # add your stuff here
+    "RUSTSEC-2026-0044", # aws-lc-sys
+    "RUSTSEC-2026-0048", # aws-lc-sys
+    "RUSTSEC-2026-0049" # aws-lc-sys
 ]
 
 [licenses]

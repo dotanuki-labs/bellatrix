@@ -20,8 +20,6 @@ async-trait.workspace = true
 futures.workspace = true
 log.workspace = true
 reqwest = { workspace = true, features = ["json", "charset", "system-proxy", "http2"] }
-reqwest-middleware = { workspace = true, features = ["json"]}
-reqwest-retry.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
@@ -32,4 +30,3 @@ tokio = { workspace = true, features = ["full"] }
 
 [lints]
 workspace = true
-
