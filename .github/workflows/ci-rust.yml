@@ -145,7 +145,7 @@ jobs:
         run: cargo publish --workspace --registry local # zizmor: ignore[use-trusted-publishing]
 
   build-cloudflare-worker:
-    needs: [lint, tests]
+    needs: build-binaries
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
@@ -157,7 +157,6 @@ jobs:
 
       - name: Build Cloudflare worker
         run: |
-          rustup target add wasm32-unknown-unknown
           cargo install --locked worker-build@0.7.5
           worker-build --release crates/bellatrix-worker
 
