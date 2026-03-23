@@ -43,7 +43,7 @@ fn build_targets(shell: &Shell) -> anyhow::Result<()> {
 
             for target in targets {
                 cmd!(shell, "rustup target add {target}").run()?;
-                cmd!(shell, "cargo build --release --target {target}").run()?;
+                cmd!(shell, "cargo build -p bellatrix --release --target {target}").run()?;
                 let binary = format!("target/{target}/release/bellatrix");
                 let destination = format!("{DEFAULT_ARTIFACTS_DIR}/bellatrix-{target}");
                 shell.copy_file(&binary, &destination)?;
@@ -52,7 +52,7 @@ fn build_targets(shell: &Shell) -> anyhow::Result<()> {
         },
         Local => {
             println!("• Building on local environment");
-            cmd!(shell, "cargo build --release").run()?;
+            cmd!(shell, "cargo build -p bellatrix --release").run()?;
         },
     };
     Ok(())
