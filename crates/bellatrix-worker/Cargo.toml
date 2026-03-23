@@ -18,15 +18,7 @@ version.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
-anyhow.workspace = true
-async-trait.workspace = true
-bellatrix-core.workspace = true
-http.workspace = true
 worker = { workspace = true, features = ['http'] }
-worker-macros = { workspace = true, features = ['http'] }
-
-
-[dev-dependencies]
 
 [lints]
 workspace = true

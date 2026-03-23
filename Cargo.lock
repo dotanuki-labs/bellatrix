@@ -240,12 +240,7 @@ dependencies = [
 name = "bellatrix-worker"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "async-trait",
- "bellatrix-core",
- "http",
  "worker",
- "worker-macros",
 ]
 
 [[package]]
