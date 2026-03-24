@@ -18,7 +18,9 @@ version.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
+anyhow.workspace = true
 worker = { workspace = true, features = ['http'] }
+bellatrix-core.workspace = true
 
 [lints]
 workspace = true
