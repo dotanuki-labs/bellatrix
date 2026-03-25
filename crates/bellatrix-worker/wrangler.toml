@@ -2,9 +2,21 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 name = "bellatrix-worker"
+compatibility_date = "2026-03-25"
+main = "build/index.js"
 
 [triggers]
 crons = [ "*/30 * * * *"]
 
 [env.dev.triggers]
 crons = [ "* * * * *" ]
+
+[[secrets_store_secrets]]
+binding = "GITHUB_TOKEN"
+store_id = "f166f591426c40dfa7ce8ca71f6113ac"
+secret_name = "GITHUB_TOKEN"
+
+[observability]
+[observability.logs]
+enabled = true
+invocation_logs = true
