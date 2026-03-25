@@ -6,15 +6,14 @@ use worker::*;
 
 #[event(scheduled)]
 async fn scheduled(_: ScheduledEvent, env: Env, _: ScheduleContext) {
-    let bellatrix = create_bellatrix(env).await.expect("failed to create bellatrix");
     console_log!("scheduled task started");
+    let bellatrix = create_bellatrix(env).await.expect("failed to create bellatrix");
 
     console_log!("updating available forks");
     match bellatrix.sync_all().await {
         Ok(sync_outcomes) => {
             if sync_outcomes.is_empty() {
                 console_log!("✓ no sync required");
-                console_log!("done");
                 return;
             }
 
@@ -26,8 +25,6 @@ async fn scheduled(_: ScheduledEvent, env: Env, _: ScheduleContext) {
                     fork.commits
                 )
             }
-
-            console_log!("done");
         },
         Err(incoming) => {
             console_error!("{}", incoming);
@@ -45,6 +42,7 @@ async fn create_bellatrix(env: Env) -> anyhow::Result<Bellatrix> {
         .get()
         .await?
         .expect("invalid GITHUB_TOKEN");
+
     let github_client_config = GithubClientConfig::new(github_api_url, github_token);
     let github_client = bellatrix_core::github::GithubClient::try_from(github_client_config)?;
     let bellatrix = Bellatrix::new(github_client);
