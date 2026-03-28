@@ -13,7 +13,8 @@ async fn scheduled(_: ScheduledEvent, env: Env, _: ScheduleContext) {
     match bellatrix.sync_all().await {
         Ok(sync_outcomes) => {
             if sync_outcomes.is_empty() {
-                console_log!("✓ no sync required");
+                console_log!("no sync required");
+                console_log!("scheduled task finished");
                 return;
             }
 
@@ -30,6 +31,8 @@ async fn scheduled(_: ScheduledEvent, env: Env, _: ScheduleContext) {
             console_error!("{}", incoming);
         },
     };
+
+    console_log!("scheduled task finished");
 }
 
 async fn create_bellatrix(env: Env) -> anyhow::Result<Bellatrix> {
