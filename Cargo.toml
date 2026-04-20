@@ -25,7 +25,7 @@ assertor = "=0.0.4"
 async-trait = "0.1.89"
 bellatrix-core = { version = "=0.1.0", path = "crates/bellatrix-core", registry = "local"}
 better-panic = "=0.3.0"
-clap = "=4.6.0"
+clap = "=4.6.1"
 console = "=0.16.3"
 env_logger = "=0.11.10"
 futures = "=0.3.32"
