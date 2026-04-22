@@ -44,7 +44,7 @@ tokio = "=1.52.1"
 xshell = "=0.2.7"
 walkdir = "=2.5.0"
 worker = "=0.7.5"
-worker-macros = "=0.8.0"
+worker-macros = "=0.8.1"
 
 
 [workspace.lints.rust]
