@@ -158,5 +158,6 @@ jobs:
       - name: Build Cloudflare worker
         run: |
           rustup target add wasm32-unknown-unknown
-          cargo install --locked worker-build@0.7.5
+          worker_version=$(grep "worker =" Cargo.toml | tr -d '"' | tr -d '=' | cut -d " " -f 3)
+          cargo install --locked worker-build@"$worker_version"
           worker-build --release crates/bellatrix-worker
