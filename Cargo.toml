@@ -44,7 +44,7 @@ tokio = "=1.52.3"
 xshell = "=0.2.7"
 walkdir = "=2.5.0"
 worker = "=0.8.1"
-worker-macros = "=0.8.1"
+worker-macros = "=0.8.3"
 
 [workspace.lints.rust]
 future_incompatible = { level = "deny", priority = -1 }
