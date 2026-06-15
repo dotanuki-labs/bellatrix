@@ -2,7 +2,7 @@
 
 [![ci](https://github.com/dotanuki-labs/bellatrix/actions/workflows/ci-all.yml/badge.svg)](https://github.com/dotanuki-labs/bellatrix/actions/workflows/ci-all.yml)
 [![license](https://img.shields.io/github/license/dotanuki-labs/bellatrix)](https://choosealicense.com/licenses/agpl-3.0)
-[![Hippocratic License HL3-CORE](https://img.shields.io/static/v1?label=Hippocratic%20License&message=HL3E&labelColor=5e2751&color=bc8c3d)](https://firstdonoharm.dev/version/3/0/core.html)
+[![Hippocratic License HL3-CORE](https://img.shields.io/static/v1?label=license&message=HL3E&labelColor=5e2751&color=bc8c3d)](https://firstdonoharm.dev/version/3/0/core.html)
 
 ## What
 
