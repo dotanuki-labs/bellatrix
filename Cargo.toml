@@ -27,7 +27,7 @@ bellatrix-core = { version = "=0.1.0", path = "crates/bellatrix-core", registry 
 better-panic = "=0.3.0"
 clap = "=4.6.1"
 console = "=0.16.3"
-env_logger = "=0.11.10"
+env_logger = "=0.11.11"
 futures = "=0.3.32"
 hex = "=0.4.3"
 http = "=1.4.2"
