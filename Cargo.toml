@@ -43,7 +43,7 @@ tikv-jemallocator = "=0.7.0"
 tokio = "=1.53.0"
 xshell = "=0.2.7"
 walkdir = "=2.5.0"
-worker = "=0.8.4"
+worker = "=0.8.5"
 worker-macros = "=0.8.5"
 
 [workspace.lints.rust]
