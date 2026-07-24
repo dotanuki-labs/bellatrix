@@ -69,6 +69,5 @@ wildcard_enum_match_arm = "deny"
 zero_sized_map_values = "deny"
 
 [profile.release]
-strip = true
 lto = true
 codegen-units = 1
