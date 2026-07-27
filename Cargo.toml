@@ -8,7 +8,7 @@ resolver = "2"
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.96.1"
+rust-version = "1.97.1"
 authors = ["dotanuki.labs@gmail.com"]
 description = "An utility that keeps your Github forks always in sync with upstreams"
 repository = "https://github.com/dotanuki-labs/bellatrix"
