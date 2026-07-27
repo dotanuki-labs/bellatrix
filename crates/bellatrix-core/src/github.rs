@@ -118,7 +118,7 @@ pub trait GithubApi {
 impl GithubApi for GithubClient {
     async fn list_recently_updated_repos(&self) -> anyhow::Result<Vec<GithubRepository>> {
         let api = format!("{}/user/repos", self.github_api_url);
-        let endpoint = format!("{}?per_page=100&sort=updated&visibility=public&affiliation=owner", &api);
+        let endpoint = format!("{}?per_page=100&sort=updated&visibility=public&affiliation=owner", api);
         self.guarded_http_get(&endpoint).await
     }
 

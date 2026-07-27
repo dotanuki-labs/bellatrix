@@ -26,6 +26,3 @@ serde_json.workspace = true
 [dev-dependencies]
 assertor.workspace = true
 tokio = { workspace = true, features = ["full"] }
-
-[lints]
-workspace = true
