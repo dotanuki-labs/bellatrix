@@ -14,13 +14,13 @@ on:
 
 jobs:
   compliance:
-    uses: ./.github/workflows/ci-compliance.yml
+    uses: $/.github/workflows/ci-compliance.yml
     permissions:
       contents: read
 
   rust:
     needs: compliance
-    uses: ./.github/workflows/ci-rust.yml
+    uses: $/.github/workflows/ci-rust.yml
     permissions:
       contents: read
 
