@@ -10,7 +10,7 @@ linker = "rust-lld"
 rustflags = ["-Ctarget-feature=+crt-static"]
 
 [alias]
-xtasks = "run --manifest-path ./crates/xtasks/Cargo.toml --"
+xtask = "run --manifest-path xtasks/Cargo.toml --"
 
 # Utility for tests
 [registries.local]

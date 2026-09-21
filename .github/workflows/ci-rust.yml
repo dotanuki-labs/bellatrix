@@ -38,7 +38,7 @@ jobs:
         uses: $/.github/actions/setup-rust
 
       - name: Run project tests
-        run: cargo xtasks tests
+        run: cargo xtask tests
 
   security:
     needs: [lint, tests]
@@ -52,7 +52,7 @@ jobs:
           persist-credentials: false
 
       - name: Check issues with supply chain
-        run: cargo xtasks security
+        run: cargo xtask security
 
   build-binaries:
     needs: [lint, tests]
@@ -74,7 +74,7 @@ jobs:
           install-extra-tools: true
 
       - name: Generates build artifacts
-        run: cargo xtasks artifacts binaries
+        run: cargo xtask artifacts binaries
 
       - name: Archive binaries
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -103,7 +103,7 @@ jobs:
         uses: $/.github/actions/setup-rust
 
       - name: Generate additional artifacts
-        run: cargo xtasks artifacts extras
+        run: cargo xtask artifacts extras
 
       - name: Archive checksums
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

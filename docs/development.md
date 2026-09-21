@@ -13,14 +13,14 @@ Please ensure you have those installed on your system.
 
 ## Project setup
 
-This project uses `xtasks` helpers to run common tasks. You can check them by running:
+This project uses `xtask` helpers to run common tasks. You can check them by running:
 
 ```bash
-cargo xtasks
+cargo xtask
 
 Companion build tasks for bellatrix
 
-Usage: xtasks <COMMAND>
+Usage: xtask <COMMAND>
 
 Commands:
   sources    Inspects sources for formatting and smells
@@ -77,7 +77,7 @@ and all required status checks must pass.
 
 This project adopts
 [GiHub Actions](https://github.com/dotanuki-labs/bellatrix/actions)
-as it CI system. Most of the verifications we'll run on CI are wrapped by the `xtasks` helpers,
+as it CI system. Most of the verifications we'll run on CI are wrapped by the `xtask` helpers,
 as previously mentioned.
 
 In addition to that, we also run a specific `Job` to enforce code quality standards for docs,

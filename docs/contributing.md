@@ -58,11 +58,11 @@ Please check them out.
 - Ensure you have a proper running environment for your fork, e.g. running unit tests locally
 
 ```bash
-cargo xtasks tests
+cargo xtask tests
 ```
 
 - Code your changes 🔥
-- Use our `xtasks` helpers to run [what we execute on CI](https://github.com/dotanuki-labs/bellatrix/blob/main/.github/workflows/ci.yml)
+- Use our `xtask` helpers to run [what we execute on CI](https://github.com/dotanuki-labs/bellatrix/blob/main/.github/workflows/ci.yml)
 - Raise your Pull Request 🚀
 - Fill the description with our [pull request template](https://github.com/dotanuki-labs/.github/blob/main/.github/PULL_REQUEST_TEMPLATE.md)
 - Ensure you've your PR [linked with a proper issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword)
