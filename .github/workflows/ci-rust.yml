@@ -128,5 +128,8 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup Rust tools
+        uses: $/.github/actions/setup-rust
+
       - name: Build Cloudflare worker
         run: cargo xtask artifacts worker
