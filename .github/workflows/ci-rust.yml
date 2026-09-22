@@ -129,8 +129,4 @@ jobs:
           persist-credentials: false
 
       - name: Build Cloudflare worker
-        run: |
-          rustup target add wasm32-unknown-unknown
-          worker_version=$(grep "worker =" Cargo.toml | tr -d '"' | tr -d '=' | cut -d " " -f 3)
-          cargo install --locked worker-build@"$worker_version"
-          worker-build --release crates/bellatrix-worker
+        run: cargo xtask artifacts worker
