@@ -8,9 +8,6 @@ main = "build/index.js"
 [triggers]
 crons = [ "*/30 * * * *"]
 
-[env.dev.triggers]
-crons = [ "* * * * *" ]
-
 [[secrets_store_secrets]]
 binding = "GITHUB_TOKEN"
 store_id = "f166f591426c40dfa7ce8ca71f6113ac"
@@ -20,3 +17,11 @@ secret_name = "GITHUB_TOKEN"
 [observability.logs]
 enabled = true
 invocation_logs = true
+
+[env.dev.triggers]
+crons = [ "* * * * *" ]
+
+[[env.dev.secrets_store_secrets]]
+binding = "GITHUB_TOKEN"
+store_id = "dfa7ce8ca71f6113acf166f591426c40"
+secret_name = "GITHUB_TOKEN"
