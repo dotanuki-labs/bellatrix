@@ -21,6 +21,7 @@ struct CliParser {
 pub enum ArtifactType {
     Binaries,
     Extras,
+    Worker,
 }
 
 #[derive(Args)]

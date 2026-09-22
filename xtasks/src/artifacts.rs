@@ -4,8 +4,10 @@
 use crate::ArtifactType;
 use crate::utils::BuildEnvironment::{CI, Local};
 use crate::utils::{docker_execution_arguments, evaluate_build_environment};
-use anyhow::bail;
+use anyhow::{Context, bail};
+use cargo_toml::{Dependency, Manifest};
 use sha2::{Digest, Sha256};
+use std::env::current_dir;
 use std::{env, fs};
 use walkdir::WalkDir;
 use xshell::{Shell, cmd};
@@ -20,6 +22,9 @@ pub fn assemble_artifacts(shell: &Shell, artifact_type: &ArtifactType) -> anyhow
             build_targets(shell)?;
         },
         ArtifactType::Extras => extract_metadata(shell)?,
+        ArtifactType::Worker => {
+            build_cloudflare_worker(shell)?;
+        },
     }
 
     Ok(())
@@ -28,6 +33,30 @@ pub fn assemble_artifacts(shell: &Shell, artifact_type: &ArtifactType) -> anyhow
 pub fn extract_metadata(shell: &Shell) -> anyhow::Result<()> {
     compute_sbom(shell)?;
     compute_checksums(shell)?;
+    Ok(())
+}
+
+fn build_cloudflare_worker(shell: &Shell) -> anyhow::Result<()> {
+    cmd!(shell, "rustup target add wasm32-unknown-unknown").run()?;
+
+    let cargo_manifest_path = current_dir()?.join("Cargo.toml");
+    let manifest = Manifest::from_path(cargo_manifest_path)?;
+    let workspace = manifest.workspace.context("expected workspace manifest")?;
+    let (_, cloudflare_worker_dependency) = workspace
+        .dependencies
+        .iter()
+        .find(|(key, _)| key.eq_ignore_ascii_case("worker"))
+        .context("missing `worker` dependency")?;
+
+    let worker_version = match cloudflare_worker_dependency {
+        Dependency::Simple(version) => version.to_string().replace("=", ""),
+        Dependency::Inherited(_) | Dependency::Detailed(_) => {
+            bail!("cannot extract a worker version from cloudflare worker")
+        },
+    };
+
+    cmd!(shell, "cargo install --locked worker-build@{worker_version}").run()?;
+    cmd!(shell, "worker-build --release crates/bellatrix-worker").run()?;
     Ok(())
 }
 
