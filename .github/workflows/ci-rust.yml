@@ -11,7 +11,7 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - name: Project checkout
@@ -26,7 +26,7 @@ jobs:
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
   tests:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - name: Project checkout
@@ -42,7 +42,7 @@ jobs:
 
   security:
     needs: [lint, tests]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
 
     steps:
@@ -84,7 +84,7 @@ jobs:
 
   binaries-extras:
     needs: build-binaries
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
 
     steps:
@@ -119,7 +119,7 @@ jobs:
 
   build-cloudflare-worker:
     needs: build-binaries
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
 
     steps:
