@@ -2,9 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 [advisories]
-ignore = [
-    "RUSTSEC-2026-0104",
-]
+ignore = []
 
 [licenses]
 confidence-threshold = 0.95
